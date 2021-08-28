@@ -39,18 +39,7 @@ const userSchema = new mongoose.Schema({
     default: undefined,
   },
   languages: {
-    type: [
-      {
-        title: {
-          type: String,
-          required: true,
-        },
-        level: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
+    type: Array,
     default: undefined,
   },
   linkedAccounts: [
@@ -68,30 +57,10 @@ const userSchema = new mongoose.Schema({
   ],
   skills: {
     type: Array,
-    validate: [validator.isEmpty, "Cannot be empty"],
     default: undefined,
   },
-  education: {
-    type: [
-      {
-        degree: {
-          type: String,
-          required: true,
-        },
-        institute: {
-          type: String,
-          required: true,
-        },
-        location: {
-          type: String,
-          required: true,
-        },
-        year: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
+  educations: {
+    type: Array,
     default: undefined,
   },
   role: {
