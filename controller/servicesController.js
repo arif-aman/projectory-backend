@@ -20,7 +20,7 @@ export const getServices = catchAsync(async (req, res, next) => {
   }
 
   // no services found
-  if (!services) {
+  if (!services || services.length <= 0) {
     return res.json({
       status: "success",
       length: 0,
@@ -58,5 +58,65 @@ export const createServices = catchAsync(async (req, res, next) => {
   return res.status(201).json({
     status: "success",
     service,
+  });
+});
+
+// update services
+export const updateServices = catchAsync(async (req, res, next) => {
+  const { sid } = req.params;
+  const { _id: uid } = req.user;
+
+  // check if req.body is empty
+  if (Object.keys(req.body).length === 0) {
+    return next(new AppError("Request body cannot be empty!", 400));
+  }
+
+  // check if service exist
+  const service = await Services.findById(sid);
+
+  if (!service) {
+    return next(new AppError("No service found with provied id.", 404));
+  }
+
+  // check if requested user is the creator of the service
+  if (service.userId.toString() !== uid.toString()) {
+    return next(new AppError("You do not have the permission.", 403));
+  }
+
+  // update
+  const updatedService = await Services.findOneAndUpdate(
+    { _id: sid },
+    { ...req.body },
+    { new: true, runValidators: true }
+  );
+
+  return res.status(200).json({
+    status: "success",
+    services: updatedService,
+  });
+});
+
+// delete service
+export const deleteService = catchAsync(async (req, res, next) => {
+  const { sid } = req.params;
+  const { _id: uid } = req.user;
+
+  // check if service exist
+  const service = await Services.findById(sid);
+
+  if (!service) {
+    return next(new AppError("No service found with provied id.", 404));
+  }
+
+  // check if requested user is the creator of the service
+  if (service.userId.toString() !== uid.toString()) {
+    return next(new AppError("You do not have the permission.", 403));
+  }
+
+  // delete
+  await Services.findOneAndDelete({ _id: sid });
+
+  res.status(200).json({
+    status: "success",
   });
 });
