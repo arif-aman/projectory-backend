@@ -5,7 +5,19 @@ import AppError from "../utils/appError.js";
 
 // ------------------ get skill tests ------------------
 export const getSkillTests = CatchAsync(async (req, res, next) => {
-  return res.status(200).json({ status: "success" });
+  const { tid } = req.query;
+
+  let skillTests;
+  if (tid) {
+    skillTests = await SkillTests.findById({ _id: tid });
+  } else {
+    skillTests = await SkillTests.find().sort("-createdAt");
+  }
+
+  return res.status(200).json({
+    status: "success",
+    skillTests: skillTests ? Array(skillTests) : [],
+  });
 });
 
 // ------------------ create skill test -----------------
@@ -50,6 +62,20 @@ export const updateSkillTest = CatchAsync(async (req, res, next) => {
 
 // ------------------ delete skill test -----------------
 export const deleteSkillTest = CatchAsync(async (req, res, next) => {
+  const { tid } = req.params;
+
+  if (!tid) {
+    return next(new AppError("Test id is required.", 400));
+  }
+
+  const skillTest = await SkillTests.findById(tid);
+
+  if (!skillTest) {
+    return next(new AppError("No test found with this test id.", 404));
+  }
+
+  await SkillTests.findByIdAndDelete(tid);
+
   return res.status(200).json({
     status: "success",
   });
