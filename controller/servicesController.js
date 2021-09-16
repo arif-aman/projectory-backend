@@ -10,19 +10,35 @@ import AppError from "../utils/appError.js";
 
 // get sercvices info
 export const getServices = catchAsync(async (req, res, next) => {
+  const { sid, uid, cat, search } = req.query;
   let services;
 
   // filter query
-  if (req.query.sid) {
-    services = await Services.findOne({ _id: req.query.sid });
-  } else if (req.query.uid) {
-    services = await Services.find({ userId: req.query.uid }).sort(
-      "-createdAt"
-    );
-  } else if (req.query.category) {
-    services = await Services.find({ category: req.query.category }).sort(
-      "-createdAt"
-    );
+  if (sid) {
+    services = await Services.findOne({ _id: sid });
+  } else if (uid) {
+    services = await Services.find({ userId: uid }).sort("-createdAt");
+  } else if (cat && !search) {
+    services = await Services.find({ category: cat }).sort("-createdAt");
+  } else if (!cat && search) {
+    services = await Services.find({
+      $text: {
+        $search: search,
+      },
+    }).sort("-createdAt");
+  } else if (cat && search) {
+    services = await Services.find({
+      $and: [
+        {
+          $text: {
+            $search: search,
+          },
+        },
+        {
+          category: cat,
+        },
+      ],
+    }).sort("-createdAt");
   } else {
     services = await Services.find().sort("-createdAt");
   }
@@ -154,7 +170,7 @@ export const updateServices = catchAsync(async (req, res, next) => {
     // update
     const updatedService = await Services.findOneAndUpdate(
       { _id: sid },
-      { ...req.body, images: imageUrls },
+      { ...req.body, images: imgUrls },
       { new: true, runValidators: true }
     );
     session.endSession();

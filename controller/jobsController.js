@@ -19,7 +19,7 @@ export const createJob = CatchAsync(async (req, res, next) => {
 
 // get jobs
 export const getJobs = CatchAsync(async (req, res, next) => {
-  const { uid, status, jid } = req.query;
+  const { uid, status, jid, cat, search } = req.query;
 
   let jobs;
 
@@ -31,11 +31,42 @@ export const getJobs = CatchAsync(async (req, res, next) => {
     jobs = await Jobs.find({ userId: uid, status }).sort("-createdAt");
   } else if (jid) {
     jobs = await Jobs.find({ _id: jid }).sort("-createdAt");
-  } else {
-    jobs = await Jobs.find()
+  } else if (cat && !search) {
+    jobs = await Jobs.find({ category: cat })
       .where("status")
       .equals("public")
       .sort("-createdAt");
+  } else if (!cat && search) {
+    jobs = await Jobs.find({
+      $and: [
+        {
+          $text: {
+            $search: search,
+          },
+        },
+        {
+          status: "public",
+        },
+      ],
+    }).sort("-createdAt");
+  } else if (cat && search) {
+    jobs = await Jobs.find({
+      $and: [
+        {
+          $text: {
+            $search: search,
+          },
+        },
+        {
+          category: cat,
+        },
+        {
+          status: "public",
+        },
+      ],
+    }).sort("-createdAt");
+  } else {
+    jobs = await Jobs.find({ status: "public" }).sort("-createdAt");
   }
 
   return res
@@ -49,7 +80,6 @@ export const deleteJobs = CatchAsync(async (req, res, next) => {
   const { jid } = req.params;
 
   const job = await Jobs.findById(jid);
-  console.log(job);
 
   if (!job || job?.length <= 0) {
     return next(new AppError("No job found with this id.", 404));
@@ -57,6 +87,10 @@ export const deleteJobs = CatchAsync(async (req, res, next) => {
 
   if (job.userId.toString() !== userId.toString()) {
     return next(new AppError("Not authorized.", 401));
+  }
+
+  if (job.status !== "public") {
+    return next(new AppError("Job is not in public status.", 400));
   }
 
   await Jobs.findOneAndDelete({ _id: jid });

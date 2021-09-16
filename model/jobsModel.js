@@ -4,12 +4,12 @@ const jobsSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      maxlength: 100,
+
       required: [true, "Title required."],
     },
     details: {
       type: String,
-      maxlength: 500,
+
       required: [true, "Details is required."],
     },
     price: {
@@ -36,6 +36,10 @@ const jobsSchema = new mongoose.Schema(
       default: "public",
       enum: ["public", "active", "finished", "canceled"],
     },
+    skills: {
+      type: Array,
+      required: [true, "Atleast one skill is required."],
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "User id is required."],
@@ -47,9 +51,16 @@ const jobsSchema = new mongoose.Schema(
     userImg: {
       type: String,
     },
+    applicants: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
+
+// creating index
+jobsSchema.index({ title: "text" });
 
 // export
 export const Jobs = mongoose.model("Job", jobsSchema);

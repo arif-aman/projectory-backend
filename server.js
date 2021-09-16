@@ -20,16 +20,25 @@ import { userRoutes } from "./routes/userRoutes.js";
 import { servicesRoutes } from "./routes/servicesRoutes.js";
 import { ratingReviewsRoutes } from "./routes/ratingReviewsRoutes.js";
 import { jobsRoutes } from "./routes/jobsRoutes.js";
+import { skillTestRoutes } from "./routes/skillTestRoutes.js";
+import { skillTestResultRoutes } from "./routes/skillTestResultRoutes.js";
+import { chatsRoutes } from "./routes/chatsRoutes.js";
+import { siteSettingsRoutes } from "./routes/siteSettingsRoutes.js";
+import { ordersRoutes } from "./routes/ordersRoutes.js";
+import { paymentsRoutes } from "./routes/paymentsRoutes.js";
 
-// env variable
-dotenv.config();
-
+// express, env variables
 const app = express();
+dotenv.config();
 
 // middlewares
 app.use(logger("tiny"));
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.use(express.json({ limit: "30mb" }));
 
 // routes
@@ -37,6 +46,12 @@ app.use("/api/user", userRoutes);
 app.use("/api/services", servicesRoutes);
 app.use("/api/jobs", jobsRoutes);
 app.use("/api/rating-review", ratingReviewsRoutes);
+app.use("/api/skill-test", skillTestRoutes);
+app.use("/api/skill-test-result", skillTestResultRoutes);
+app.use("/api/chats", chatsRoutes);
+app.use("/api/site-settings", siteSettingsRoutes);
+app.use("/api/orders", ordersRoutes);
+app.use("/api/payments", paymentsRoutes);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`cannot find ${req.originalUrl} on this server!`, 404));
@@ -46,7 +61,6 @@ app.all("*", (req, res, next) => {
 app.use(globalErrorHandler);
 
 // server connect
-let server;
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -56,12 +70,10 @@ mongoose
   })
   .then(() => {
     console.log("DB Connected!");
-    server = app.listen(process.env.PORT || 8000, () =>
-      console.log("Server Started.")
-    );
+    app.listen(process.env.PORT || 8000, () => console.log("Server Started."));
   });
 
 process.on("unhandledRejection", (err) => {
   console.error(err.name, err.message);
-  server.close(() => process.exit(1));
+  app.close(() => process.exit(1));
 });

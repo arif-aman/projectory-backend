@@ -1,5 +1,6 @@
 import { User } from "../model/userModel.js";
 import { Services } from "../model/servicesModel.js";
+import { Jobs } from "../model/jobsModel.js";
 
 import { cloudinary } from "../config/cloudinary.js";
 
@@ -49,6 +50,17 @@ export const updateUserInfo = catchAsync(async (req, res, next) => {
         );
       }
     }
+
+    // changing jobs userImg
+    const jobs = await Jobs.find({ userId: uid });
+    if (jobs || jobs?.length <= 0) {
+      for (let i = 0; i < jobs.length; i++) {
+        await Jobs.findByIdAndUpdate(
+          { _id: jobs[i]._id },
+          { userImg: newAvatar }
+        );
+      }
+    }
   }
 
   const oldUserData = await User.findById(uid);
@@ -58,6 +70,7 @@ export const updateUserInfo = catchAsync(async (req, res, next) => {
     {
       ...oldUserData._doc,
       ...req.body,
+      role: "user",
       avatar: newAvatar ? newAvatar : oldUserData.avatar,
     },
     { new: true, runValidators: true, context: "query" }
