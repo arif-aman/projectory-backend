@@ -48,6 +48,6 @@ STRIPE_KEY=
 
 ### Links 🔗
 
-- Frontend Repo: [Click Here](https://github.com/swimshahriar/projectory-frontend) <br/>
+- Frontend Repo: [Click Here](https://github.com/arif-aman/projectory-frontend) <br/>
 
 - Socket Server Repo: [Click Here](https://github.com/swimshahriar/projectory-socket-server) <br/>
